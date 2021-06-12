@@ -1,0 +1,1 @@
+../../../global/iam/policy.tf
