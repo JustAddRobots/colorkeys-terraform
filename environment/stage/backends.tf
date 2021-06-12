@@ -1,7 +1,3 @@
-# stage
-
-# Terraform currently doesn't support vars in backend configuration.
-
 terraform {
   backend "s3" {
     bucket          = "stage-terraform-state-colorkeys"
