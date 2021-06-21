@@ -86,14 +86,16 @@ def load_colorkeys(table, colorkeys):
 
 
 def lambda_handler(event, context):
-    """Run CodePipeline stage."""
+    """Run CodePipeline stage.
+
+    Get task ARN from the codepipeline-run namespace UserParameters.
+    Get colorkeys run results from S3 tmp bucket with key task_hash[:8].json.zip.
+    Load results into DynamoDB table.
+    """
     job = event["CodePipeline.job"]
     cp = boto3.client("codepipeline")
-    logging.info(job)
+    logger.info(f"job: {job}")
 
-    # Get task ARN from the codepipeline-run namespace UserParameters.
-    # Get colorkeys run results from S3 tmp bucket with key task_hash[:8].json.zip.
-    # Load results into DynamoDB table.
     try:
         task_arn = get_task_arn(job)
         task_hash = task_arn.split("/")[-1]
