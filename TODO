@@ -10,6 +10,14 @@ X run vars
 X s3 samples bucket
 X handle imageUri
   permissions issue on apply
+  SNS
+  SQS
+  SQS -> status lambda
+  refactor policy for var interpolation
+  add descriptions
+  narrow privs
+  var interpolation syntax
+  remove manually-configured resources
 X tag everything
     project = colorkeys
     environment = stage
