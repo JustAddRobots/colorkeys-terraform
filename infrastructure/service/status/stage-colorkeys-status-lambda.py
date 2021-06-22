@@ -23,7 +23,7 @@ def get_source_info(notification):
 
 def get_repo_info(pipeline_name):
     cp = boto3.client("codepipeline")
-    dict_ = cp.get_pipeline(name="pipeline_name")
+    dict_ = cp.get_pipeline(name=pipeline_name)
     source_stage = next(i for i in dict_["pipeline"]["stages"] if i["name"] == "Source")
     source_action = next(j for j in source_stage["actions"])
     repo = source_action["configuration"]["FullRepositoryId"]
@@ -52,6 +52,7 @@ def create_payload(notification):
 
 
 def post_status(url, payload, token):
+    payload = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         url,
         data = payload,
@@ -78,6 +79,13 @@ def parse_sqs(event):
     payload = create_payload(notification)
     url = f"https://api.github.com/repos/{repo}/statuses/{source['commit']}"
     token = os.getenv("GITHUB_TOKEN")
+
+    logger.info(f"notification: {notification}")
+    logger.info(f"source: {source}")
+    logger.info(f"payload: {payload}")
+    logger.info(f"url: {url}")
+    logger.info(f"token: {token}")
+
     response = post_status(url, payload, token)
     return response
 
