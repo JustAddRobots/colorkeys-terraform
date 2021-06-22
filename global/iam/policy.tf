@@ -295,6 +295,8 @@ data "aws_iam_policy_document" "lambda" {
     actions = [
       "codepipeline:PutJobFailureResult",
       "codepipeline:PutJobSuccessResult",
+      "codepipeline:GetPipeline",
+      "codepipeline:GetPipelineExecution",
       "dynamodb:ListTables"
     ]
     resources = [

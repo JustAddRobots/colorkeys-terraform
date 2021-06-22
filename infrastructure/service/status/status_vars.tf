@@ -3,6 +3,12 @@ variable "sqs_source" {
   type        = string
 }
 
+variable "GITHUB_TOKEN" {
+  description = "GitHub Personal Access Token"  # env var
+  type        = string
+  sensitive   = true
+}
+
 variable "stage_status_lambda_source" {
   description = "Lambda source"
   type        = string

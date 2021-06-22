@@ -303,9 +303,12 @@ module "load" {
   source  = "../load"
 }
 
+variable "GITHUB_TOKEN" {}  # env var
+
 module "status" {
   source      = "../status"
   sqs_source  = "${aws_sqs_queue.stage_colorkeys_pipeline.arn}"
+  GITHUB_TOKEN = "${var.GITHUB_TOKEN}"
 }
 
 
