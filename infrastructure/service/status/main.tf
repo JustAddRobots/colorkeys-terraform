@@ -84,6 +84,13 @@ data "archive_file" "stage_status_lambda" {
   output_path = "${path.module}/${var.stage_status_lambda_zip}"
 }
 
+resource "aws_lambda_layer_version" "requests" {
+  filename            = "${var.stage_status_layer_requests}"
+  layer_name          = "${var.stage_status_layer_requests_name}"
+  compatible_runtimes = ["python3.8"]
+  source_code_hash    = filebase64sha256("${var.stage_status_layer_requests}")
+}
+
 resource "aws_lambda_function" "status" {
   description       = "Load colorkeys histograms into database"
   filename          = "${path.module}/${var.stage_status_lambda_zip}"
@@ -95,6 +102,7 @@ resource "aws_lambda_function" "status" {
 
   runtime = "python3.8"
   timeout = "300"
+  layers  = ["${aws_lambda_layer_version.requests.arn}"]
 
   environment {
     variables = {
