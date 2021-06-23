@@ -32,6 +32,7 @@ variable "stage_status_log_group" {
   type        = string
   default     = "/aws/lambda/stage-colorkeys-status-lambda"
 }
+<<<<<<< HEAD
 
 variable "stage_status_layer_requests" {
   description = "Lambda Layer, requests"
@@ -44,3 +45,5 @@ variable "stage_status_layer_requests_name" {
   type        = string
   default     = "stage-colorkeys-status-layer-requests"
 }
+=======
+>>>>>>> 5dbd80c07a51d5214ce999ea20eb6e72ccd157fb
