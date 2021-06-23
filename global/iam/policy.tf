@@ -58,6 +58,27 @@ data "aws_iam_policy_document" "codepipeline_service"{
 
   statement {
     actions = [
+      "codestar-notifications:CreateNotificationRule",
+      "codestar-notifications:DeleteNotificationRule",
+      "codestar-notifications:DescribeNotificationRule",
+      "codestar-notifications:ListNotificationRules",
+      "codestar-notifications:UpdateNotificationRule",
+      "codestar-notifications:Subscribe",
+      "codestar-notifications:Unsubscribe",
+      "codestar-notifications:DeleteTarget",
+      "codestar-notifications:ListTargets",
+      "codestar-notifications:ListTagsforResource",
+      "codestar-notifications:TagResource",
+      "codestar-notifications:UntagResource"
+    ]
+    resources = [
+      "*"
+    ]
+  }
+
+
+  statement {
+    actions = [
       "elasticbeanstalk:*",
       "ec2:*",
       "elasticloadbalancing:*",
@@ -274,6 +295,8 @@ data "aws_iam_policy_document" "lambda" {
     actions = [
       "codepipeline:PutJobFailureResult",
       "codepipeline:PutJobSuccessResult",
+      "codepipeline:GetPipeline",
+      "codepipeline:GetPipelineExecution",
       "dynamodb:ListTables"
     ]
     resources = [

@@ -61,8 +61,8 @@ resource "aws_iam_role" "codepipeline_service" {
   name                = "codepipeline-service"
   tags                = var.default_tags
   assume_role_policy  = jsonencode({
-    Version     = "2012-10-17"
-    Statement  = [
+    Version   = "2012-10-17"
+    Statement = [
       {
         Action    = "sts:AssumeRole"
         Effect    = "Allow"
@@ -77,6 +77,211 @@ resource "aws_iam_role" "codepipeline_service" {
 resource "aws_iam_role_policy_attachment" "codepipeline_service" {
   role        = "${aws_iam_role.codepipeline_service.name}"
   policy_arn  = "${aws_iam_policy.codepipeline_service.arn}"
+}
+
+# --- Notifications ---
+
+resource "aws_codestarnotifications_notification_rule" "stage_colorkeys_pipeline" {
+  name            = "stage-colorkeys-pipeline"
+  detail_type     = "FULL"
+  resource        = "${aws_codepipeline.stage_colorkeys.arn}"
+  event_type_ids  = [
+    "codepipeline-pipeline-pipeline-execution-failed",
+    "codepipeline-pipeline-pipeline-execution-canceled",
+    "codepipeline-pipeline-pipeline-execution-started",
+    "codepipeline-pipeline-pipeline-execution-resumed",
+    "codepipeline-pipeline-pipeline-execution-succeeded",
+    "codepipeline-pipeline-pipeline-execution-superseded"
+  ]
+  target  {
+    address = "${aws_sns_topic.stage_colorkeys_pipeline.arn}"
+  }
+}
+
+resource "aws_cloudwatch_event_rule" "stage_colorkeys_pipeline" {
+  name            = "stage-colorkeys-pipeline"
+  description     = "CodePipeline Status Event"
+  event_bus_name  = "default"
+  tags            = var.default_tags
+
+  event_pattern = <<EOF
+{
+  "source": [
+    "aws.codepipeline"
+  ],
+  "detail-type": [
+    "CodePipeline Pipeline Execution State Change"
+  ],
+  "detail": {
+    "state": [
+      "FAILED",
+      "CANCELED",
+      "STARTED",
+      "RESUMED",
+      "STOPPED",
+      "SUCCEEDED",
+      "SUPERSEDED"
+    ]
+  }
+}
+EOF
+}
+
+resource "aws_cloudwatch_event_target" "stage_colorkeys_pipeline" {
+  rule      = "${aws_cloudwatch_event_rule.stage_colorkeys_pipeline.name}"
+  target_id = "SendToSNS"
+  arn       = "${aws_sns_topic.stage_colorkeys_pipeline.arn}"
+}
+
+# --- SNS ---
+
+resource "aws_sns_topic" "stage_colorkeys_pipeline" {
+  name  = "stage-colorkeys-pipeline"
+}
+
+resource "aws_sns_topic_policy" "stage_colorkeys_pipeline" {
+  arn     = aws_sns_topic.stage_colorkeys_pipeline.arn
+  policy  = data.aws_iam_policy_document.sns_topic.json
+}
+
+data "aws_iam_policy_document" "sns_topic" {
+  policy_id = "__default_policy_ID"
+
+  statement {
+    sid = "__default_statement_ID"
+    effect = "Allow"
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+    actions = [
+      "SNS:Subscribe",
+      "SNS:SetTopicAttributes",
+      "SNS:RemovePermission",
+      "SNS:Receive",
+      "SNS:Publish",
+      "SNS:ListSubscriptionsByTopic",
+      "SNS:GetTopicAttributes",
+      "SNS:DeleteTopic",
+      "SNS:AddPermission",
+    ]
+    resources = [
+      "${aws_sns_topic.stage_colorkeys_pipeline.arn}"
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceOwner"
+      values = [
+        "${local.aws_account_id}",
+      ]
+    }
+  }
+
+  statement {
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = [
+        "codestar-notifications.amazonaws.com"
+      ]
+    }
+    actions = [
+      "SNS:Publish",
+    ]
+    resources = [
+      "${aws_sns_topic.stage_colorkeys_pipeline.arn}"
+    ]
+  }
+}
+
+# data "aws_iam_policy_document" "sns_topic" {
+#   statement {
+#     effect  = "Allow"
+#     actions = [
+#       "SNS:Publish"
+#     ]
+#     principals {
+#       type          = "Service"
+#       identifiers   = [
+#         "events.amazonaws.com"
+#       ]
+#     }
+#     resources = [
+#       aws_sns_topic.stage_colorkeys_pipeline.arn,
+#     ]
+#   }
+# }
+
+# --- SQS ---
+
+resource "aws_sqs_queue" "stage_colorkeys_pipeline_deadletter" {
+  name  = "stage-colorkeys-pipeline-deadletter"
+  tags  = var.default_tags
+}
+
+resource "aws_sqs_queue" "stage_colorkeys_pipeline" {
+  name                        = "stage-colorkeys-pipeline"
+  visibility_timeout_seconds  = 300
+  tags                        = var.default_tags
+  redrive_policy              = jsonencode({
+    deadLetterTargetArn = "${aws_sqs_queue.stage_colorkeys_pipeline_deadletter.arn}"
+    maxReceiveCount     = 4
+  })
+}
+
+# data "aws_iam_policy_document" "sqs_send" {
+#   policy_id = "SQSSendAccess"
+#   statement {
+#     effect    = "Allow"
+#     actions   = [
+#       "SQS:*"
+#     ]
+#     resources = [
+#       "${aws_sqs_queue.stage_colorkeys_pipeline.arn}"
+#     ]
+#     principals {
+#       identifiers = ["*"]
+#       type        = "*"
+#     }
+#     condition {
+#       test     = "ArnEquals"
+#       values   = [
+#         "${aws_sns_topic.stage_colorkeys_pipeline.arn}"
+#       ]
+#       variable = "aws:SourceArn"
+#     }
+#   }
+# }  
+  
+resource "aws_sqs_queue_policy" "stage_colorkeys_pipeline" {
+  queue_url = aws_sqs_queue.stage_colorkeys_pipeline.id
+#   policy  = data.aws_iam_policy_document.sqs_send.json
+  policy    = <<SQSPOLICY
+{
+  "Version": "2012-10-17",
+  "Id": "sqspolicy",
+  "Statement": [
+    {
+      "Sid": "First",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "sqs:SendMessage",
+      "Resource": "${aws_sqs_queue.stage_colorkeys_pipeline.arn}",
+      "Condition": {
+        "ArnEquals": {
+          "aws:SourceArn": "${aws_sns_topic.stage_colorkeys_pipeline.arn}"
+        }
+      }
+    }
+  ]
+}
+SQSPOLICY
+}
+
+resource "aws_sns_topic_subscription" "stage_colorkeys_pipeline" {
+  topic_arn = "${aws_sns_topic.stage_colorkeys_pipeline.arn}"
+  protocol  = "sqs"
+  endpoint  = "${aws_sqs_queue.stage_colorkeys_pipeline.arn}"
 }
 
 
@@ -97,6 +302,15 @@ module "run" {
 module "load" {
   source  = "../load"
 }
+
+variable "GITHUB_TOKEN" {}  # env var
+
+module "status" {
+  source      = "../status"
+  sqs_source  = "${aws_sqs_queue.stage_colorkeys_pipeline.arn}"
+  GITHUB_TOKEN = "${var.GITHUB_TOKEN}"
+}
+
 
 # --- codepipeline ---
 
@@ -129,7 +343,7 @@ resource "aws_codepipeline" "stage_colorkeys" {
         ConnectionArn         = "${local.codepipeline_source_connection_arn}"
         FullRepositoryId      = "${var.codepipeline_source_repo}"
         BranchName            = "${var.codepipeline_source_branch}"
-        DetectChanges         = "false"
+        DetectChanges         = "true"
         OutputArtifactFormat  = "CODEBUILD_CLONE_REF"
       }
     }
@@ -163,7 +377,7 @@ resource "aws_codepipeline" "stage_colorkeys" {
       owner             = "AWS"
       provider          = "Lambda"
       input_artifacts   = ["build_artifact"]
-      output_artifacts  = ["run_output"]
+      output_artifacts  = ["run_artifact"]
       version           = "1"
       namespace         = "codepipeline-run"
 
@@ -181,8 +395,8 @@ resource "aws_codepipeline" "stage_colorkeys" {
       category          = "Invoke"
       owner             = "AWS"
       provider          = "Lambda"
-      input_artifacts   = []
-      output_artifacts  = ["load_output"]
+      input_artifacts   = ["run_artifact"]
+      output_artifacts  = ["load_artifact"]
       version           = "1"
       namespace         = "codepipeline-load"
 
