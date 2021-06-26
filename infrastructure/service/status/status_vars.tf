@@ -1,5 +1,7 @@
-variable "sqs_source" {
-  description = "SQS source for Lambda trigger"
+# --- Lambda github ---
+
+variable "sqs_source_github" {
+  description = "SQS source for Lambda trigger, github"
   type        = string
 }
 
@@ -9,30 +11,68 @@ variable "GITHUB_TOKEN" {
   sensitive   = true
 }
 
-variable "stage_status_lambda_source" {
-  description = "Lambda source"
+variable "stage_status_lambda_source_github" {
+  description = "Lambda source, github status"
   type        = string
-  default     = "stage-colorkeys-status-lambda.py"
+  default     = "stage-colorkeys-status-lambda-github.py"
 }
 
-variable "stage_status_lambda_zip" {
-  description = "Lambda zip"
+variable "stage_status_lambda_zip_github" {
+  description = "Lambda zip, github"
   type        = string
-  default     = "stage-colorkeys-status-lambda.py.zip"
+  default     = "stage-colorkeys-status-lambda-github.py.zip"
 }
 
-variable "stage_status_lambda_funcname" {
-  description = "Lambda function name"
+variable "stage_status_lambda_funcname_github" {
+  description = "Lambda function name, github"
   type        = string
-  default     = "stage-colorkeys-status-lambda"
+  default     = "stage-colorkeys-status-lambda-github"
 }
 
-variable "stage_status_log_group" {
-  description = "CloudWatch log group for DynamoDB"
+variable "stage_status_log_group_github" {
+  description = "CloudWatch log group for status, github"
   type        = string
-  default     = "/aws/lambda/stage-colorkeys-status-lambda"
+  default     = "/aws/lambda/stage-colorkeys-status-lambda-github"
 }
-<<<<<<< HEAD
+
+# --- Lambda slack ---
+
+variable "sqs_source_slack" {
+  description = "SQS source for Lambda trigger, slack"
+  type        = string
+}
+
+variable "SLACK_URL_SUFFIX" {
+  description = "Slack webhook"  # env var
+  type        = string
+  sensitive   = true
+}
+
+variable "stage_status_lambda_source_slack" {
+  description = "Lambda source, slack status"
+  type        = string
+  default     = "stage-colorkeys-status-lambda-slack.py"
+}
+
+variable "stage_status_lambda_zip_slack" {
+  description = "Lambda zip, slack"
+  type        = string
+  default     = "stage-colorkeys-status-lambda-slack.py.zip"
+}
+
+variable "stage_status_lambda_funcname_slack" {
+  description = "Lambda function name, slack"
+  type        = string
+  default     = "stage-colorkeys-status-lambda-slack"
+}
+
+variable "stage_status_log_group_slack" {
+  description = "CloudWatch log group for status, slack"
+  type        = string
+  default     = "/aws/lambda/stage-colorkeys-status-lambda-slack"
+}
+
+# --- Lambda layers ---
 
 variable "stage_status_layer_requests" {
   description = "Lambda Layer, requests"
@@ -45,5 +85,3 @@ variable "stage_status_layer_requests_name" {
   type        = string
   default     = "stage-colorkeys-status-layer-requests"
 }
-=======
->>>>>>> 5dbd80c07a51d5214ce999ea20eb6e72ccd157fb
