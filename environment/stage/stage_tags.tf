@@ -1,4 +1,4 @@
-# stage_tags
+# --- stage_tags ---
 
 variable "default_tags" {
   type  = map(string)

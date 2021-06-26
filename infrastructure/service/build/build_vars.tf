@@ -1,3 +1,5 @@
+# --- build_vars ---
+
 variable "projectname" {
   description = "Name of build project"
   type        = string

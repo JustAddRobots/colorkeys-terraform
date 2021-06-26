@@ -49,13 +49,3 @@ variable "codepipeline_load_funcname" {
 variable "codepipeline_load_bucket" {
   default = "stage-colorkeys-load"
 }
-
-variable "SLACK_WORKSPACE_ID" {
-  type    = string
-  default = ""
-}
-
-variable "SLACK_CHANNEL_ID" {
-  type    = string
-  default = ""
-}

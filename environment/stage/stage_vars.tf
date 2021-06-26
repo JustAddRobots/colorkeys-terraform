@@ -1,4 +1,4 @@
-# stage
+# --- stage_vars ---
 
 variable "env" {
   type        = string
@@ -11,10 +11,10 @@ variable "env" {
 
 variable "terraform_state" {
   description = "S3 bucket for Terraform state"
-  default = "stage-terraform-state-colorkeys"
+  default     = "stage-terraform-state-colorkeys"
 }
 
 variable "terraform_state_locks" {
   description = "DynamoDB for Terraform locks"
-  default = "stage-terraform-state-locks-colorkeys"
+  default     = "stage-terraform-state-locks-colorkeys"
 }

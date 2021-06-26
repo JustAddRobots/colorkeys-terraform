@@ -1,3 +1,6 @@
+"""
+    This lambda parses CodePipeline notifications (via SQS) and posts to Github API.
+"""
 import boto3
 import json
 import logging
@@ -88,7 +91,6 @@ def post_status(url, payload, token):
     """
     headers = {"Authorization": f"token {token}"}
     res = requests.post(url, json=payload, headers=headers)
-    logger.info(f"res: {res}")
     return res
 
 
@@ -133,12 +135,12 @@ def parse_sqs_status(event):
 def lambda_handler(event, context):
     """Handle CodePipeline Notification in SQS event."""
     try:
-        r = parse_sqs_status(event)
-    except Exception as e:
+        resp = parse_sqs_status(event)
+    except Exception as exc:
         logger.info("Lambda Failure")
         logger.info(f"event: {event}")
-        logger.info(f"e: {e}")
+        logger.info(f"exc: {exc}")
     else:
-        logger.info(r)
+        logger.info(f"resp: {resp}")
     logger.info("Lambda Complete")
     return None

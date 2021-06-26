@@ -175,11 +175,11 @@ data "aws_iam_policy" "run_lambda_vpc" {
 }
 
 resource "aws_iam_role" "run_lambda" {
-  name  = "stage-run-lambda"
-  tags  = var.default_tags
+  name                = "stage-run-lambda"
+  tags                = var.default_tags
   assume_role_policy  = jsonencode({
-    Version     = "2012-10-17"
-    Statement  = [
+    Version   = "2012-10-17"
+    Statement = [
       {
         Action    = "sts:AssumeRole"
         Effect    = "Allow"
