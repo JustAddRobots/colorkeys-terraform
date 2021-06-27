@@ -1,3 +1,11 @@
+variable "aws_account_id" {
+  type  = string
+}
+
+variable "github_connection" {
+  type        = string
+}
+
 variable "codepipeline_artifact_bucket" {
   default = "stage-codepipeline-artifact"
 }

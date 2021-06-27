@@ -37,7 +37,7 @@ data "aws_iam_policy_document" "sns_topic" {
       test     = "StringEquals"
       variable = "AWS:SourceOwner"
       values = [
-        "${local.aws_account_id}",
+        "${var.aws_account_id}",
       ]
     }
   }

@@ -1,13 +1,5 @@
 # === pipeline ===
 
-data "aws_caller_identity" "current" {}
-
-locals {
-  aws_account_id                      = data.aws_caller_identity.current.account_id
-  codepipeline_source_connection_arn  = "arn:aws:codestar-connections:${var.aws_region}:${local.aws_account_id}:connection/fdf2d69f-c7cc-4d2c-93f4-0915b85d9c30"
-}
-
-
 # --- modules ---
 
 module "build" {
@@ -45,7 +37,9 @@ resource "aws_codepipeline" "stage_colorkeys" {
   role_arn    = "${aws_iam_role.codepipeline_service.arn}"
   tags        = var.default_tags
   depends_on  = [
-    aws_iam_role_policy_attachment.codepipeline_service,
+    aws_iam_policy.codepipeline_service,
+    aws_iam_role.codepipeline_service,
+    aws_iam_role_policy_attachment.codepipeline_service
   ]
 
   artifact_store {
@@ -66,7 +60,7 @@ resource "aws_codepipeline" "stage_colorkeys" {
       namespace         = "codepipeline-source"
 
       configuration = {
-        ConnectionArn         = "${local.codepipeline_source_connection_arn}"
+        ConnectionArn         = "${var.github_connection}"
         FullRepositoryId      = "${var.codepipeline_source_repo}"
         BranchName            = "${var.codepipeline_source_branch}"
         DetectChanges         = "true"
