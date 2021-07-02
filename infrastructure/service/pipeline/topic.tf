@@ -1,7 +1,10 @@
 # === topic ===
 
 resource "aws_sns_topic" "stage_colorkeys_pipeline" {
-  name  = "stage-colorkeys-pipeline"
+  name                        = "stage-colorkeys-pipeline"
+#  name                        = "stage-colorkeys-pipeline.fifo"
+#  fifo_topic                  = true
+#  content_based_deduplication = true
 }
 
 resource "aws_sns_topic_policy" "stage_colorkeys_pipeline" {

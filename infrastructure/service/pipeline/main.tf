@@ -29,6 +29,13 @@ module "status" {
   SLACK_URL_SUFFIX  = "${var.SLACK_URL_SUFFIX}"
 }
 
+resource "time_sleep" "wait_5_s" {
+  depends_on      = [
+    aws_iam_role_policy_attachment.codepipeline_service
+  ]
+  create_duration = "5s"
+}
+
 
 # --- codepipeline ---
 
@@ -37,9 +44,7 @@ resource "aws_codepipeline" "stage_colorkeys" {
   role_arn    = "${aws_iam_role.codepipeline_service.arn}"
   tags        = var.default_tags
   depends_on  = [
-    aws_iam_policy.codepipeline_service,
-    aws_iam_role.codepipeline_service,
-    aws_iam_role_policy_attachment.codepipeline_service
+    time_sleep.wait_5_s
   ]
 
   artifact_store {
