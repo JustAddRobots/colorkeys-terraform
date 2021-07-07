@@ -1,7 +1,10 @@
 # === topic ===
 
 resource "aws_sns_topic" "stage_colorkeys_pipeline" {
-  name  = "stage-colorkeys-pipeline"
+  name                        = "stage-colorkeys-pipeline"
+#  name                        = "stage-colorkeys-pipeline.fifo"
+#  fifo_topic                  = true
+#  content_based_deduplication = true
 }
 
 resource "aws_sns_topic_policy" "stage_colorkeys_pipeline" {
@@ -37,7 +40,7 @@ data "aws_iam_policy_document" "sns_topic" {
       test     = "StringEquals"
       variable = "AWS:SourceOwner"
       values = [
-        "${local.aws_account_id}",
+        "${var.aws_account_id}",
       ]
     }
   }

@@ -59,7 +59,8 @@ def create_payload(notification):
 
     message_text = (
         f"*{notification['state']}* {notification['pipeline']} "
-        f"{notification['exec_id'][:8]} <{pipeline_url} | (Open)>"
+        f"{notification['exec_id'][:8]} <{pipeline_url} | (Open)> "
+        f"{notification['timestamp']}"
     )
 
     # Add action and reason for failed state
@@ -137,6 +138,7 @@ def parse_sqs_status(event):
     notification["pipeline"] = ev["detail"]["pipeline"]
     notification["state"] = ev["detail"]["state"]
     notification["exec_id"] = ev["detail"]["execution-id"]
+    notification["timestamp"] = record_body["Timestamp"]
     notification["region"] = record["awsRegion"]
     if notification["state"].lower() == "failed":
         notification["failures"] = ev["additionalAttributes"]["failedActions"]

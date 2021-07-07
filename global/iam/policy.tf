@@ -51,7 +51,8 @@ data "aws_iam_policy_document" "codepipeline_service"{
 
   statement {
     actions = [
-      "codestar-connections:UseConnection"
+      "codestar-connections:UseConnection",
+      "codestar-connections:*"
     ]
     resources = [
       "*"
@@ -283,7 +284,8 @@ data "aws_iam_policy_document" "ecr_push" {
 data "aws_iam_policy_document" "codestar_github" {
   statement {
     actions = [
-      "codestar-connections:UseConnection"
+      "codestar-connections:UseConnection",
+      "*"
     ]
     resources = [
       "*"

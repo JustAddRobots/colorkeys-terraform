@@ -48,12 +48,18 @@ data "aws_iam_policy_document" "sqs_send" {
 
 # SQS for github status updates
 resource "aws_sqs_queue" "stage_colorkeys_pipeline_deadletter_github" {
-  name  = "stage-colorkeys-pipeline-deadletter-github"
-  tags  = var.default_tags
+  name                        = "stage-colorkeys-pipeline-deadletter-github"
+#  name                        = "stage-colorkeys-pipeline-deadletter-github.fifo"
+#  fifo_queue                  = true
+#  content_based_deduplication = true
+  tags                        = var.default_tags
 }
 
 resource "aws_sqs_queue" "stage_colorkeys_pipeline_github" {
   name                        = "stage-colorkeys-pipeline-github"
+#  name                        = "stage-colorkeys-pipeline-github.fifo"
+#  fifo_queue                  = true
+#  content_based_deduplication = true
   visibility_timeout_seconds  = 300
   tags                        = var.default_tags
   redrive_policy              = jsonencode({
@@ -77,12 +83,18 @@ resource "aws_sns_topic_subscription" "stage_colorkeys_pipeline_github" {
 
 # SQS for slack status updates
 resource "aws_sqs_queue" "stage_colorkeys_pipeline_deadletter_slack" {
-  name  = "stage-colorkeys-pipeline-deadletter-slack"
-  tags  = var.default_tags
+  name                        = "stage-colorkeys-pipeline-deadletter-slack"
+#  name                        = "stage-colorkeys-pipeline-deadletter-slack.fifo"
+#  fifo_queue                  = true
+#  content_based_deduplication = true
+  tags                        = var.default_tags
 }
 
 resource "aws_sqs_queue" "stage_colorkeys_pipeline_slack" {
   name                        = "stage-colorkeys-pipeline-slack"
+#  name                        = "stage-colorkeys-pipeline-slack.fifo"
+#  fifo_queue                  = true
+#  content_based_deduplication = true
   visibility_timeout_seconds  = 300
   tags                        = var.default_tags
   redrive_policy              = jsonencode({
