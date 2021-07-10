@@ -1,7 +1,7 @@
 # --- stage_tags ---
 
 variable "default_tags" {
-  type  = map(string)
+  type    = map(string)
   default = {
     project     = "colorkeys"
     environment = "stage"
