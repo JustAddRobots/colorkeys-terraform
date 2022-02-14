@@ -40,7 +40,11 @@ def get_obj_from_s3zip(bucket, objkey, internalfile):
     s3obj = s3.Object(bucket, objkey)
     with zipfile.ZipFile(io.BytesIO(s3obj.get()["Body"].read())) as zf:
         with zf.open(internalfile) as obj_json:
-            obj = json.loads(obj_json.read().decode(), parse_float=Decimal, parse_int=int)
+            obj = json.loads(
+                obj_json.read().decode(),
+                parse_float=Decimal,
+                parse_int=int
+            )
     return obj
 
 
@@ -99,7 +103,7 @@ def lambda_handler(event, context):
     try:
         task_arn = get_task_arn(job)
         task_hash = task_arn.split("/")[-1]
-        colorkeys = get_task_obj("tmp-colorkeys", task_hash)
+        colorkeys = get_task_obj("stage-colorkeys-tmp", task_hash)
         r = load_colorkeys("stage-colorkeys", colorkeys)
     except Exception as e:
         logger.info("Lambda Failure")
