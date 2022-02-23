@@ -23,7 +23,7 @@ variable "codepipeline_samples_source" {
 }
 
 variable "codepipeline_tmp_bucket" {
-  default = "tmp-colorkeys"
+  default = "stage-colorkeys-tmp"
 }
 
 variable "codepipeline_source_repo" {
