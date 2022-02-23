@@ -1,8 +1,8 @@
 # === IAM ===
 
 resource "aws_iam_policy" "codepipeline_service" {
-  name        = "codepipeline-service"
-  description = "CodePipeline Service Policy"
+  name        = "stage-codepipeline-service"
+  description = "CodePipeline Service Role Policy"
   tags        = var.default_tags
   policy      = data.aws_iam_policy_document.codepipeline_service.json
 }

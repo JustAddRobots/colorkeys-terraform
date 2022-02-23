@@ -3,7 +3,7 @@
 # --- IAM ---
 
 resource "aws_iam_policy" "status_lambda" {
-  description = "Lambda Policy"
+  description = "Lambda status Policy"
   name        = "stage-status-lambda"
   tags        = var.default_tags
   policy      = data.aws_iam_policy_document.lambda.json

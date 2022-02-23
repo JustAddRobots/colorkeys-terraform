@@ -153,7 +153,7 @@ resource "aws_ecs_cluster" "workers" {
 # --- Lambda ---
 
 resource "aws_iam_policy" "run_lambda" {
-  description = "Lambda ECS Policy"
+  description = "Lambda run Policy"
   name        = "stage-run-lambda"
   tags        = var.default_tags
   policy      = data.aws_iam_policy_document.lambda.json

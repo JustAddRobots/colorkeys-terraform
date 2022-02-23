@@ -9,22 +9,22 @@ locals {
 # --- CodeBuild ---
 
 resource "aws_iam_policy" "codebuild_service" {
-  name        = "codebuild-service"
-  description = "CodeBuild Service Role"
+  name        = "stage-codebuild-service"
+  description = "CodeBuild Service Role Policy"
   tags        = var.default_tags
   policy      = data.aws_iam_policy_document.codebuild_service.json
 }
 
 resource "aws_iam_policy" "ecr_push" {
-  name        = "ecr-push"
-  description = "Push to ECR"
+  name        = "stage-ecr-push"
+  description = "ECR Push Policy"
   tags        = var.default_tags
   policy      = data.aws_iam_policy_document.ecr_push.json
 }
 
 resource "aws_iam_policy" "codestar_github" {
-  name        = "codestar-github"
-  description = "Connect to github"
+  name        = "stage-codestar-github"
+  description = "Codestar GitHub Connection Policy"
   tags        = var.default_tags
   policy      = data.aws_iam_policy_document.codestar_github.json
 }
