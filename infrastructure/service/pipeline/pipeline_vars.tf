@@ -1,3 +1,11 @@
+variable "aws_account_id" {
+  type  = string
+}
+
+variable "github_connection" {
+  type        = string
+}
+
 variable "codepipeline_artifact_bucket" {
   default = "stage-codepipeline-artifact"
 }
@@ -15,7 +23,7 @@ variable "codepipeline_samples_source" {
 }
 
 variable "codepipeline_tmp_bucket" {
-  default = "tmp-colorkeys"
+  default = "stage-colorkeys-tmp"
 }
 
 variable "codepipeline_source_repo" {
@@ -48,14 +56,4 @@ variable "codepipeline_load_funcname" {
 
 variable "codepipeline_load_bucket" {
   default = "stage-colorkeys-load"
-}
-
-variable "SLACK_WORKSPACE_ID" {
-  type    = string
-  default = ""
-}
-
-variable "SLACK_CHANNEL_ID" {
-  type    = string
-  default = ""
 }

@@ -40,7 +40,11 @@ def get_obj_from_s3zip(bucket, objkey, internalfile):
     s3obj = s3.Object(bucket, objkey)
     with zipfile.ZipFile(io.BytesIO(s3obj.get()["Body"].read())) as zf:
         with zf.open(internalfile) as obj_json:
-            obj = json.loads(obj_json.read().decode(), parse_float=Decimal, parse_int=int)
+            obj = json.loads(
+                obj_json.read().decode(),
+                parse_float=Decimal,
+                parse_int=int
+            )
     return obj
 
 
@@ -86,18 +90,20 @@ def load_colorkeys(table, colorkeys):
 
 
 def lambda_handler(event, context):
-    """Run CodePipeline stage."""
+    """Run CodePipeline stage.
+
+    Get task ARN from the codepipeline-run namespace UserParameters.
+    Get colorkeys run results from S3 tmp bucket with key task_hash[:8].json.zip.
+    Load results into DynamoDB table.
+    """
     job = event["CodePipeline.job"]
     cp = boto3.client("codepipeline")
-    logging.info(job)
+    logger.info(f"job: {job}")
 
-    # Get task ARN from the codepipeline-run namespace UserParameters.
-    # Get colorkeys run results from S3 tmp bucket with key task_hash[:8].json.zip.
-    # Load results into DynamoDB table.
     try:
         task_arn = get_task_arn(job)
         task_hash = task_arn.split("/")[-1]
-        colorkeys = get_task_obj("tmp-colorkeys", task_hash)
+        colorkeys = get_task_obj("stage-colorkeys-tmp", task_hash)
         r = load_colorkeys("stage-colorkeys", colorkeys)
     except Exception as e:
         logger.info("Lambda Failure")

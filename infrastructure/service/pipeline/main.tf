@@ -1,85 +1,5 @@
 # === pipeline ===
 
-data "aws_caller_identity" "current" {}
-
-locals {
-  aws_account_id                      = data.aws_caller_identity.current.account_id
-  codepipeline_source_connection_arn  = "arn:aws:codestar-connections:${var.aws_region}:${local.aws_account_id}:connection/fdf2d69f-c7cc-4d2c-93f4-0915b85d9c30"
-}
-
-
-# --- S3 ---
-
-resource "aws_s3_bucket" "this" {
-  bucket        = "${var.codepipeline_artifact_bucket}"
-  acl           = "private"
-  tags          = var.default_tags
-  force_destroy = true
-}
-
-resource "aws_s3_bucket" "tmp_colorkeys" {
-  bucket        = "${var.codepipeline_tmp_bucket}"
-  acl           = "private"
-  tags          = var.default_tags
-  force_destroy = true
-}
-
-resource "aws_s3_bucket" "stage_colorkeys_samples" {
-  bucket        = "${var.codepipeline_samples_bucket}"
-  acl           = "private"
-  tags          = var.default_tags
-  force_destroy = true
-}
-
-resource "aws_s3_bucket_object" "samples" {
-  bucket  = "${aws_s3_bucket.stage_colorkeys_samples.id}"
-  key     = "${var.codepipeline_samples_key}"
-  acl     = "private"
-  source  = "${var.codepipeline_samples_source}"
-  etag    = filemd5("${var.codepipeline_samples_source}")
-}
-
-
-# --- ECR ---
-
-resource "aws_ecr_repository" "stage_colorkeys_build_repo" {
-  name  = "${var.codepipeline_build_repo}"
-  tags  = var.default_tags
-}
-
-
-# --- IAM ---
-
-resource "aws_iam_policy" "codepipeline_service" {
-  name        = "codepipeline-service"
-  description = "CodePipeline Service Policy"
-  tags        = var.default_tags
-  policy      = data.aws_iam_policy_document.codepipeline_service.json
-}
-
-resource "aws_iam_role" "codepipeline_service" {
-  name                = "codepipeline-service"
-  tags                = var.default_tags
-  assume_role_policy  = jsonencode({
-    Version     = "2012-10-17"
-    Statement  = [
-      {
-        Action    = "sts:AssumeRole"
-        Effect    = "Allow"
-        Principal = {
-          Service = "codepipeline.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "codepipeline_service" {
-  role        = "${aws_iam_role.codepipeline_service.name}"
-  policy_arn  = "${aws_iam_policy.codepipeline_service.arn}"
-}
-
-
 # --- modules ---
 
 module "build" {
@@ -98,6 +18,25 @@ module "load" {
   source  = "../load"
 }
 
+variable "GITHUB_TOKEN" {}  # env var
+variable "SLACK_URL_SUFFIX" {}  # env var
+
+module "status" {
+  source            = "../status"
+  sqs_source_github = "${aws_sqs_queue.stage_colorkeys_pipeline_github.arn}"
+  sqs_source_slack  = "${aws_sqs_queue.stage_colorkeys_pipeline_slack.arn}"
+  GITHUB_TOKEN      = "${var.GITHUB_TOKEN}"
+  SLACK_URL_SUFFIX  = "${var.SLACK_URL_SUFFIX}"
+}
+
+resource "time_sleep" "wait_8_s" {
+  depends_on      = [
+    aws_iam_role_policy_attachment.codepipeline_service
+  ]
+  create_duration = "8s"
+}
+
+
 # --- codepipeline ---
 
 resource "aws_codepipeline" "stage_colorkeys" {
@@ -105,7 +44,7 @@ resource "aws_codepipeline" "stage_colorkeys" {
   role_arn    = "${aws_iam_role.codepipeline_service.arn}"
   tags        = var.default_tags
   depends_on  = [
-    aws_iam_role_policy_attachment.codepipeline_service,
+    time_sleep.wait_8_s
   ]
 
   artifact_store {
@@ -126,10 +65,10 @@ resource "aws_codepipeline" "stage_colorkeys" {
       namespace         = "codepipeline-source"
 
       configuration = {
-        ConnectionArn         = "${local.codepipeline_source_connection_arn}"
+        ConnectionArn         = "${var.github_connection}"
         FullRepositoryId      = "${var.codepipeline_source_repo}"
         BranchName            = "${var.codepipeline_source_branch}"
-        DetectChanges         = "false"
+        DetectChanges         = "true"
         OutputArtifactFormat  = "CODEBUILD_CLONE_REF"
       }
     }
@@ -163,7 +102,7 @@ resource "aws_codepipeline" "stage_colorkeys" {
       owner             = "AWS"
       provider          = "Lambda"
       input_artifacts   = ["build_artifact"]
-      output_artifacts  = ["run_output"]
+      output_artifacts  = ["run_artifact"]
       version           = "1"
       namespace         = "codepipeline-run"
 
@@ -181,8 +120,8 @@ resource "aws_codepipeline" "stage_colorkeys" {
       category          = "Invoke"
       owner             = "AWS"
       provider          = "Lambda"
-      input_artifacts   = []
-      output_artifacts  = ["load_output"]
+      input_artifacts   = ["run_artifact"]
+      output_artifacts  = ["load_artifact"]
       version           = "1"
       namespace         = "codepipeline-load"
 
@@ -192,5 +131,4 @@ resource "aws_codepipeline" "stage_colorkeys" {
       }
     }
   }
-
 }

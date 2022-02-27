@@ -158,15 +158,17 @@ def get_input_artifact(job, artifact_file, key):
 
 
 def lambda_handler(event, context):
-    """Run CodePipeline stage."""
+    """Run CodePipeline stage.
+
+    Run Fargate ECS task and wait for completion. Output task ARN to
+    CodePipeline on success.
+
+    The colorkeys task uploads results to S3 tmp bucket with key in the format of
+    task_hash[:8].colorkeys.json.zip.
+    """
     job = event["CodePipeline.job"]
     cp = boto3.client("codepipeline")
 
-    # Run Fargate ECS task, wait for completion.
-    # Output task ARN to CodePipeline on success.
-
-    # The colorkeys task uploads result to S3 tmp bucket with key in the format of
-    # task_hash[:8].colorkeys.json.zip.
     try:
         logger.info(f"job: {job}")
         # img = get_input_artifact(job, "imagedefinitions.json", "imageUri")

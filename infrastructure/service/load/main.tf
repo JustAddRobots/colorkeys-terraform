@@ -31,7 +31,7 @@ resource "aws_dynamodb_table" "stage_colorkeys" {
 # --- Lambda ---
 
 resource "aws_iam_policy" "load_lambda" {
-  description = "Lambda Policy"
+  description = "Lambda load Policy"
   name        = "stage-load-lambda"
   tags        = var.default_tags
   policy      = data.aws_iam_policy_document.lambda.json
