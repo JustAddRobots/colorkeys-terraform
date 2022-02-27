@@ -58,7 +58,7 @@ Update AWS region in ./global/vars.tf
 * terraform destroy AWS resources
 
 <P align="center">
-	![Destroy](https://user-images.githubusercontent.com/59129905/155896606-ebe66472-66fe-4cbe-8554-14edd8a0ca38.mp4)
+	<IMG src="https://user-images.githubusercontent.com/59129905/155896606-ebe66472-66fe-4cbe-8554-14edd8a0ca38.mp4" />
 </P>
 
 ## Todo
